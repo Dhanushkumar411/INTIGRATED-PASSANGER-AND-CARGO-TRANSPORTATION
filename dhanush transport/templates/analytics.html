@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Dual-Transit Analytics & Sustainability - Dhanush OmniTransit{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-cyan-400 font-semibold mb-1">
+                <i class="fa-solid fa-chart-pie"></i> Strategic Intelligence
+            </div>
+            <h1 class="text-3xl font-extrabold text-white">Dual-Transit Analytics & ESG Impact</h1>
+            <p class="text-sm text-slate-400">Financial performance, load factor synergy, and carbon emissions reduction through shared transit.</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-xs bg-emerald-950/60 border border-emerald-800/40 px-3 py-1.5 rounded-lg text-emerald-300">
+                <i class="fa-solid fa-leaf mr-1"></i> Green Mobility Audit Compliant
+            </span>
+        </div>
+    </div>
+
+    <!-- Revenue & KPI Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        
+        <!-- Total Revenue -->
+        <div class="glass-card p-6 rounded-2xl border-l-4 border-l-cyan-500">
+            <span class="text-xs text-slate-400 block font-semibold uppercase tracking-wider">Combined Revenue</span>
+            <div class="text-2xl sm:text-3xl font-black text-white mt-1">&#8377; {{ "%.2f"|format(data.total_rev) }}</div>
+            <span class="text-[11px] text-cyan-400 mt-1 block">Passengers + Freight combined</span>
+        </div>
+
+        <!-- Passenger Share -->
+        <div class="glass-card p-6 rounded-2xl border-l-4 border-l-blue-500">
+            <span class="text-xs text-slate-400 block font-semibold uppercase tracking-wider">Passenger Fares</span>
+            <div class="text-2xl sm:text-3xl font-black text-blue-400 mt-1">&#8377; {{ "%.2f"|format(data.passenger_rev) }}</div>
+            <span class="text-[11px] text-slate-400 mt-1 block">{{ "%.1f"|format((data.passenger_rev / (data.total_rev or 1)) * 100) }}% of total gross</span>
+        </div>
+
+        <!-- Cargo Share -->
+        <div class="glass-card p-6 rounded-2xl border-l-4 border-l-emerald-500">
+            <span class="text-xs text-slate-400 block font-semibold uppercase tracking-wider">Logistics & Freight</span>
+            <div class="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">&#8377; {{ "%.2f"|format(data.cargo_rev) }}</div>
+            <span class="text-[11px] text-slate-400 mt-1 block">{{ "%.1f"|format((data.cargo_rev / (data.total_rev or 1)) * 100) }}% of total gross</span>
+        </div>
+
+        <!-- CO2 Saved -->
+        <div class="glass-card p-6 rounded-2xl border-l-4 border-l-amber-500">
+            <span class="text-xs text-slate-400 block font-semibold uppercase tracking-wider">CO₂ Emissions Averted</span>
+            <div class="text-2xl sm:text-3xl font-black text-amber-400 mt-1">{{ data.co2_saved_kg }} <span class="text-sm font-normal text-slate-400">kg</span></div>
+            <span class="text-[11px] text-emerald-400 mt-1 block"><i class="fa-solid fa-leaf"></i> Via passenger cargo-hitching</span>
+        </div>
+
+    </div>
+
+    <!-- Dual Synergy Analysis Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+        
+        <!-- Revenue Share Bar & Synergy Explanation (6 cols) -->
+        <div class="lg:col-span-6 glass-card p-6 rounded-2xl border border-slate-800">
+            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-scale-balanced text-cyan-400"></i>
+                Dual Revenue Diversification
+            </h3>
+            <p class="text-xs text-slate-400 leading-relaxed mb-6">
+                Single-mode transport models suffer from off-peak vacancies and deadhead return journeys. Dhanush Transport unlocks additional profit margins by monetizing unused vehicle volume for express logistics.
+            </p>
+
+            <!-- Revenue Split Bar -->
+            <div class="space-y-2 mb-6">
+                <div class="flex justify-between text-xs text-slate-300">
+                    <span class="text-blue-400 font-bold"><i class="fa-solid fa-users"></i> Passenger Transit ({{ "%.1f"|format((data.passenger_rev / (data.total_rev or 1)) * 100) }}%)</span>
+                    <span class="text-emerald-400 font-bold"><i class="fa-solid fa-boxes-packing"></i> Cargo Logistics ({{ "%.1f"|format((data.cargo_rev / (data.total_rev or 1)) * 100) }}%)</span>
+                </div>
+                <div class="w-full h-4 bg-slate-800 rounded-full flex overflow-hidden">
+                    <div class="bg-blue-500 h-4" style="width: {{ (data.passenger_rev / (data.total_rev or 1)) * 100 }}%"></div>
+                    <div class="bg-emerald-500 h-4" style="width: {{ (data.cargo_rev / (data.total_rev or 1)) * 100 }}%"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 text-xs">
+                <div class="p-3 bg-slate-900 rounded-xl border border-slate-800">
+                    <span class="text-slate-400 block mb-1">Express Cargo Hitched:</span>
+                    <strong class="text-white text-sm">{{ data.hitched_cargo_count }} Shipments</strong>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Carried on passenger coaches</p>
+                </div>
+                <div class="p-3 bg-slate-900 rounded-xl border border-slate-800">
+                    <span class="text-slate-400 block mb-1">Hitched Payload Weight:</span>
+                    <strong class="text-emerald-400 text-sm">{{ "%.1f"|format(data.hitched_cargo_weight) }} kg</strong>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Zero added vehicular miles</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Environmental & ESG Impact (6 cols) -->
+        <div class="lg:col-span-6 glass-card p-6 rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 to-emerald-950/30">
+            <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-seedling text-emerald-400"></i>
+                Environmental Sustainability (ESG)
+            </h3>
+            <p class="text-xs text-slate-400 leading-relaxed mb-6">
+                Traditional logistics dispatch separate diesel delivery vans between cities even when public buses are driving the same route with 60% empty boot space.
+            </p>
+
+            <div class="space-y-4">
+                <div class="flex items-start gap-3 p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm shrink-0">
+                        <i class="fa-solid fa-smog"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-white">Carbon Footprint Reduction</h4>
+                        <p class="text-[11px] text-slate-400 mt-0.5">
+                            Saved <span class="font-bold text-emerald-400">{{ data.co2_saved_kg }} kg CO₂</span> by removing redundant delivery vans from Indian highways.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3 p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                    <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-sm shrink-0">
+                        <i class="fa-solid fa-road"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-white">Highway Congestion Relief</h4>
+                        <p class="text-[11px] text-slate-400 mt-0.5">
+                            Consolidates passenger luggage decks for parcel logistics, minimizing highway toll queues and urban terminal congestion.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Route Performance Table -->
+    <div class="glass-card rounded-2xl border border-slate-800 p-6">
+        <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-map-location-dot text-amber-400"></i> Corridor Profitability Breakdown
+        </h3>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-950 text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                    <tr>
+                        <th class="py-3 px-4">Corridor Code</th>
+                        <th class="py-3 px-4">Origin &rarr; Destination</th>
+                        <th class="py-3 px-4">Passengers</th>
+                        <th class="py-3 px-4">Cargo Consignments</th>
+                        <th class="py-3 px-4">Passenger Rev</th>
+                        <th class="py-3 px-4">Cargo Rev</th>
+                        <th class="py-3 px-4">Total Revenue</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/80">
+                    {% for r in data.route_stats %}
+                    <tr class="hover:bg-slate-900/50 transition-colors">
+                        <td class="py-3 px-4 font-mono font-bold text-blue-400">{{ r.route_code }}</td>
+                        <td class="py-3 px-4 font-bold text-white">{{ r.origin }} &rarr; {{ r.dest }}</td>
+                        <td class="py-3 px-4 text-slate-300">{{ r.total_passengers }}</td>
+                        <td class="py-3 px-4 text-slate-300">{{ r.total_cargos }}</td>
+                        <td class="py-3 px-4 text-blue-400 font-semibold">&#8377; {{ "%.2f"|format(r.route_passenger_rev) }}</td>
+                        <td class="py-3 px-4 text-emerald-400 font-semibold">&#8377; {{ "%.2f"|format(r.route_cargo_rev) }}</td>
+                        <td class="py-3 px-4 text-white font-extrabold">&#8377; {{ "%.2f"|format(r.route_passenger_rev + r.route_cargo_rev) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Fleet Dispatch & Dual Capacity Control Room - Dhanush OmniTransit{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-purple-400 font-semibold mb-1">
+                <i class="fa-solid fa-network-wired"></i> Operations Control Center
+            </div>
+            <h1 class="text-3xl font-extrabold text-white">Fleet & Dual-Capacity Dispatcher</h1>
+            <p class="text-sm text-slate-400">Real-time telematics, dual vehicle payload optimization, and automated checkpoint dispatch.</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-xs bg-purple-950/60 border border-purple-800/40 px-3 py-1.5 rounded-lg text-purple-300">
+                <i class="fa-solid fa-microchip mr-1"></i> Dual-Capacity Telematics Active
+            </span>
+        </div>
+    </div>
+
+    <!-- Summary KPI Row -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="glass-card p-5 rounded-2xl border-l-4 border-l-purple-500">
+            <span class="text-xs text-slate-400 block font-semibold uppercase">Total Vehicles</span>
+            <div class="text-2xl font-black text-white mt-1">{{ summary.total_vehicles }}</div>
+            <span class="text-[11px] text-slate-500">All fleet units</span>
+        </div>
+        <div class="glass-card p-5 rounded-2xl border-l-4 border-l-blue-500">
+            <span class="text-xs text-slate-400 block font-semibold uppercase">Hybrid Passenger Coaches</span>
+            <div class="text-2xl font-black text-blue-400 mt-1">{{ summary.hybrid_coaches }}</div>
+            <span class="text-[11px] text-slate-500">Carrying passengers + cargo</span>
+        </div>
+        <div class="glass-card p-5 rounded-2xl border-l-4 border-l-emerald-500">
+            <span class="text-xs text-slate-400 block font-semibold uppercase">Heavy Freight Trucks</span>
+            <div class="text-2xl font-black text-emerald-400 mt-1">{{ summary.freight_trucks }}</div>
+            <span class="text-[11px] text-slate-500">Logistics only</span>
+        </div>
+        <div class="glass-card p-5 rounded-2xl border-l-4 border-l-amber-500">
+            <span class="text-xs text-slate-400 block font-semibold uppercase">En Route Right Now</span>
+            <div class="text-2xl font-black text-amber-400 mt-1">{{ summary.active_in_transit }}</div>
+            <span class="text-[11px] text-slate-500">Live GPS tracking</span>
+        </div>
+    </div>
+
+    <!-- Active Fleet Table & Cards -->
+    <div class="glass-card rounded-2xl border border-slate-800 p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-route text-blue-400"></i> Active Trips & Dual Capacity Load Factors
+            </h3>
+            <span class="text-xs text-slate-400">Click "Simulate Progress" to advance vehicle GPS coordinates</span>
+        </div>
+
+        <div class="space-y-4">
+            {% for trip in trips %}
+            <div class="bg-slate-900/90 rounded-2xl p-5 border border-slate-800 glass-card-hover">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                    
+                    <!-- Trip Info & Route (3 cols) -->
+                    <div class="lg:col-span-3">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                {{ trip.trip_code }}
+                            </span>
+                            <span class="text-xs px-2 py-0.5 rounded-full font-semibold {{ 'bg-emerald-500/20 text-emerald-300' if trip.status == 'In Transit' else ('bg-blue-500/20 text-blue-300' if trip.status == 'Scheduled' else 'bg-slate-800 text-slate-400') }}">
+                                {{ trip.status }}
+                            </span>
+                        </div>
+                        <h4 class="text-base font-bold text-white mt-1">{{ trip.origin_city }} &rarr; {{ trip.dest_city }}</h4>
+                        <p class="text-xs text-slate-400">{{ trip.vehicle_name }} ({{ trip.reg_number }})</p>
+                        <p class="text-xs text-slate-500 mt-1"><i class="fa-solid fa-user-gear mr-1"></i> {{ trip.driver_name }} ({{ trip.driver_phone }})</p>
+                    </div>
+
+                    <!-- Dual Capacity Gauges (5 cols) -->
+                    <div class="lg:col-span-5 bg-slate-950/60 p-4 rounded-xl border border-slate-800/80 space-y-3">
+                        <!-- Passenger Occupancy -->
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-blue-400 font-semibold flex items-center gap-1.5">
+                                    <i class="fa-solid fa-users"></i> Passenger Cabin:
+                                </span>
+                                <span class="text-white font-mono">
+                                    {% if trip.total_seats > 0 %}
+                                    {{ trip.booked_seats }} / {{ trip.total_seats }} Seats ({{ (trip.booked_seats / trip.total_seats * 100)|round }}%)
+                                    {% else %}
+                                    <span class="text-slate-500">N/A (Freight Only)</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2">
+                                {% if trip.total_seats > 0 %}
+                                <div class="bg-blue-500 h-2 rounded-full" style="width: {{ (trip.booked_seats / trip.total_seats * 100)|round }}%"></div>
+                                {% else %}
+                                <div class="bg-slate-700 h-2 rounded-full" style="width: 0%"></div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Cargo Payload -->
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-emerald-400 font-semibold flex items-center gap-1.5">
+                                    <i class="fa-solid fa-boxes-packing"></i> Cargo Bay Payload:
+                                </span>
+                                <span class="text-white font-mono">
+                                    {{ "%.0f"|format(trip.booked_cargo_kg) }} / {{ "%.0f"|format(trip.total_cargo_kg) }} kg ({{ (trip.booked_cargo_kg / (trip.total_cargo_kg or 1) * 100)|round }}%)
+                                </span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2">
+                                <div class="bg-emerald-500 h-2 rounded-full" style="width: {{ (trip.booked_cargo_kg / (trip.total_cargo_kg or 1) * 100)|round }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress & Telematics Simulation Actions (4 cols) -->
+                    <div class="lg:col-span-4 flex flex-col justify-between items-end gap-3">
+                        <div class="w-full text-right">
+                            <div class="flex justify-between text-xs text-slate-400 mb-1">
+                                <span>Transit Waypoint:</span>
+                                <span class="font-bold text-white">{{ trip.progress_pct or 0 }}% Finished</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                                <div class="bg-amber-400 h-1.5 rounded-full" style="width: {{ trip.progress_pct or 0 }}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <!-- Advance Simulator Button -->
+                            {% if trip.status != 'Completed' %}
+                            <form action="{{ url_for('simulate_trip_progress', trip_id=trip.id) }}" method="POST">
+                                <button type="submit" class="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-lg shadow-md shadow-purple-600/30 flex items-center gap-1.5 transition-all">
+                                    <i class="fa-solid fa-forward-step"></i> Simulate Step (+15%)
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-xs px-3 py-1 rounded-lg bg-slate-800 text-slate-500 font-semibold">
+                                <i class="fa-solid fa-flag-checkered mr-1"></i> Trip Completed
+                            </span>
+                            {% endif %}
+
+                            <a href="{{ url_for('tracking_details', tracking_ref='PNR-DT-882101' if trip.id == 1 else ('AWB-DT-10081' if trip.id == 2 else 'AWB-DT-90050')) }}" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg border border-slate-700 transition-colors">
+                                Map <i class="fa-solid fa-location-arrow text-[10px] ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

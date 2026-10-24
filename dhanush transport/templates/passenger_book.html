@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}Passenger Seat Reservation - Dhanush OmniTransit{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-blue-400 font-semibold mb-1">
+                <i class="fa-solid fa-bus"></i> Passenger Transit Division
+            </div>
+            <h1 class="text-3xl font-extrabold text-white">Book Your Travel Journey</h1>
+            <p class="text-sm text-slate-400">Comfortable inter-city bus and shuttle services with integrated express cargo capabilities.</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-slate-300">
+                <i class="fa-solid fa-shield-heart text-blue-400 mr-1"></i> Verified Drivers & Sanitized Fleet
+            </span>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="glass-card p-6 rounded-2xl mb-8 border border-slate-800">
+        <form action="{{ url_for('passenger_portal') }}" method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-2">Departing Terminal</label>
+                <select name="origin" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <option value="">All Origin Hubs</option>
+                    {% for hub in all_hubs %}
+                    <option value="{{ hub.id }}" {% if selected_origin == hub.id %}selected{% endif %}>{{ hub.city }} ({{ hub.code }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-2">Arrival Terminal</label>
+                <select name="dest" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <option value="">All Destination Hubs</option>
+                    {% for hub in all_hubs %}
+                    <option value="{{ hub.id }}" {% if selected_dest == hub.id %}selected{% endif %}>{{ hub.city }} ({{ hub.code }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex items-end gap-2">
+                <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition-all shadow-md shadow-blue-600/30 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-filter"></i> Filter Schedules
+                </button>
+                <a href="{{ url_for('passenger_portal') }}" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold transition-colors">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Available Trips List -->
+    <div class="space-y-6">
+        {% if trips %}
+            {% for trip in trips %}
+            <div class="glass-card rounded-2xl p-6 border border-slate-800 glass-card-hover">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                    
+                    <!-- Trip Details & Route (5 cols) -->
+                    <div class="lg:col-span-5">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-semibold border border-blue-500/20">
+                                {{ trip.trip_code }}
+                            </span>
+                            <span class="text-xs text-slate-400">&bull; {{ trip.distance_km }} km (approx {{ trip.duration_hours }} hrs)</span>
+                        </div>
+                        <div class="flex items-center gap-4 my-3">
+                            <div>
+                                <div class="text-lg font-extrabold text-white">{{ trip.origin_city }}</div>
+                                <div class="text-xs text-slate-400">{{ trip.departure_time }}</div>
+                            </div>
+                            <div class="flex-1 flex items-center justify-center relative">
+                                <div class="w-full border-t border-dashed border-slate-700"></div>
+                                <i class="fa-solid fa-bus text-blue-500 absolute bg-slate-900 px-2 text-xs"></i>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-lg font-extrabold text-white">{{ trip.dest_city }}</div>
+                                <div class="text-xs text-slate-400">{{ trip.arrival_time }}</div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-slate-400 flex items-center gap-2">
+                            <i class="fa-solid fa-id-badge text-blue-400"></i> Vehicle: <span class="text-slate-300 font-medium">{{ trip.vehicle_name }} ({{ trip.reg_number }})</span>
+                        </div>
+                    </div>
+
+                    <!-- Dual Utilization & Seat Availability (4 cols) -->
+                    <div class="lg:col-span-4 border-t lg:border-t-0 lg:border-l border-slate-800/80 lg:pl-6 space-y-3">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-slate-400">Passenger Seat Capacity:</span>
+                                <span class="font-bold {{ 'text-red-400' if trip.booked_seats >= trip.total_seats else 'text-emerald-400' }}">
+                                    {{ trip.total_seats - trip.booked_seats }} Seats Left
+                                </span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2">
+                                <div class="bg-blue-500 h-2 rounded-full" style="width: {{ (trip.booked_seats / trip.total_seats * 100)|round }}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Dual Cargo Hitching Badge -->
+                        <div class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
+                            <div class="flex items-center justify-between text-slate-300">
+                                <span class="flex items-center gap-1.5 text-emerald-400 font-medium">
+                                    <i class="fa-solid fa-boxes-packing"></i> Cargo-Hitching Deck:
+                                </span>
+                                <span>{{ "%.0f"|format(trip.booked_cargo_kg) }} kg carried</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-1">Carries express parcels below deck without disturbing passenger comfort.</p>
+                        </div>
+                    </div>
+
+                    <!-- Price & Reservation Trigger (3 cols) -->
+                    <div class="lg:col-span-3 border-t lg:border-t-0 lg:border-l border-slate-800/80 lg:pl-6 flex flex-col justify-between items-end">
+                        <div class="text-right w-full mb-3">
+                            <span class="text-xs text-slate-400">Fare per seat</span>
+                            <div class="text-2xl font-black text-white">&#8377; {{ "%.2f"|format(trip.base_passenger_fare) }}</div>
+                            <span class="text-[11px] text-emerald-400">Inclusive of all taxes & insurance</span>
+                        </div>
+
+                        {% if trip.booked_seats < trip.total_seats %}
+                        <button onclick="openBookingModal('{{ trip.id }}', '{{ trip.trip_code }}', '{{ trip.origin_city }}', '{{ trip.dest_city }}', '{{ trip.base_passenger_fare }}')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition-all shadow-md shadow-blue-600/30 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-ticket"></i> Select Seat & Book
+                        </button>
+                        {% else %}
+                        <button disabled class="w-full bg-slate-800 text-slate-500 font-semibold py-2.5 px-4 rounded-xl text-sm cursor-not-allowed">
+                            Trip Sold Out
+                        </button>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="glass-card p-12 text-center rounded-2xl border border-slate-800">
+                <i class="fa-solid fa-bus text-slate-600 text-4xl mb-4"></i>
+                <h3 class="text-lg font-bold text-white mb-1">No Scheduled Trips Found</h3>
+                <p class="text-xs text-slate-400 mb-4">No passenger buses currently match your selected terminal filters.</p>
+                <a href="{{ url_for('passenger_portal') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-500">
+                    Clear Filters
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Interactive Passenger Booking Modal -->
+<div id="bookingModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm hidden p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-xl shadow-2xl p-6 relative">
+        <button onclick="closeBookingModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <div class="flex items-center gap-2 text-xs font-semibold text-blue-400 mb-1">
+            <i class="fa-solid fa-ticket"></i> Reservation Form
+        </div>
+        <h3 id="modalTripTitle" class="text-xl font-bold text-white mb-4">Book Seat</h3>
+
+        <form action="{{ url_for('book_passenger') }}" method="POST" class="space-y-4">
+            <input type="hidden" name="trip_id" id="modalTripId">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Passenger Name *</label>
+                    <input type="text" name="passenger_name" required placeholder="e.g. Ramesh Varma" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Contact Phone Number *</label>
+                    <input type="tel" name="passenger_phone" required placeholder="+91 98765 43210" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1">Email Address (Optional)</label>
+                <input type="email" name="passenger_email" placeholder="For e-ticket receipt" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+
+            <!-- Seat Picker Grid -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-2">Choose Seat Preference *</label>
+                <div class="grid grid-cols-4 gap-2 text-xs font-medium">
+                    <label class="flex items-center justify-center p-2.5 rounded-xl border border-slate-700 bg-slate-950 cursor-pointer hover:border-blue-500 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-600/20">
+                        <input type="radio" name="seat_number" value="A1-Window" checked class="hidden">
+                        <span>A1 (Window)</span>
+                    </label>
+                    <label class="flex items-center justify-center p-2.5 rounded-xl border border-slate-700 bg-slate-950 cursor-pointer hover:border-blue-500 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-600/20">
+                        <input type="radio" name="seat_number" value="A2-Aisle" class="hidden">
+                        <span>A2 (Aisle)</span>
+                    </label>
+                    <label class="flex items-center justify-center p-2.5 rounded-xl border border-slate-700 bg-slate-950 cursor-pointer hover:border-blue-500 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-600/20">
+                        <input type="radio" name="seat_number" value="B1-Window" class="hidden">
+                        <span>B1 (Window)</span>
+                    </label>
+                    <label class="flex items-center justify-center p-2.5 rounded-xl border border-slate-700 bg-slate-950 cursor-pointer hover:border-blue-500 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-600/20">
+                        <input type="radio" name="seat_number" value="B2-Aisle" class="hidden">
+                        <span>B2 (Aisle)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Total Price Row -->
+            <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between">
+                <span class="text-xs text-slate-400">Total Payable Amount:</span>
+                <span id="modalFareDisplay" class="text-xl font-extrabold text-blue-400">&#8377; 0.00</span>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="closeBookingModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2.5 rounded-xl text-sm transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-xl text-sm transition-all shadow-md shadow-blue-600/30 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check"></i> Confirm Reservation
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function openBookingModal(tripId, code, origin, dest, fare) {
+        document.getElementById('modalTripId').value = tripId;
+        document.getElementById('modalTripTitle').innerText = `${origin} to ${dest} (${code})`;
+        document.getElementById('modalFareDisplay').innerHTML = `&#8377; ${parseFloat(fare).toFixed(2)}`;
+        document.getElementById('bookingModal').classList.remove('hidden');
+    }
+
+    function closeBookingModal() {
+        document.getElementById('bookingModal').classList.add('hidden');
+    }
+</script>
+{% endblock %}

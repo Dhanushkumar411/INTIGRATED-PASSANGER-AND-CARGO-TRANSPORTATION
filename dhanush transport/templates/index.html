@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}Dhanush OmniTransit - Passenger Travel & Fast Cargo Logistics{% endblock %}
+
+{% block content %}
+<div class="relative overflow-hidden pt-8 pb-16">
+    <!-- Background glow shapes -->
+    <div class="absolute top-10 left-1/4 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute top-40 right-1/4 w-96 h-96 bg-emerald-600/15 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <!-- Hero Title & Badges -->
+        <div class="text-center max-w-3xl mx-auto mb-12">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700 text-xs font-semibold text-slate-300 mb-6 shadow-inner">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>Smart Multi-Modal Platform</span>
+                <span class="text-slate-500">&bull;</span>
+                <span class="text-emerald-400">Cargo Hitching & Transit Combined</span>
+            </div>
+            <h1 class="text-4xl sm:text-6xl font-extrabold text-white tracking-tight leading-tight">
+                One Vehicle. Two Missions. <br>
+                <span class="bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400 bg-clip-text text-transparent">
+                    People & Logistics Together.
+                </span>
+            </h1>
+            <p class="mt-4 text-base sm:text-lg text-slate-400 leading-relaxed">
+                Dhanush Transport bridges passenger bus travel with high-speed cargo delivery. We utilize spare luggage bays on inter-city coaches to deliver parcels same-day at lower costs, while operating dedicated freight lines for heavy industrial cargo.
+            </p>
+        </div>
+
+        <!-- Unified Interactive Action Widget (Passenger Booking, Cargo Dispatch, Track) -->
+        <div class="max-w-4xl mx-auto glass-card rounded-2xl shadow-2xl p-6 sm:p-8 mb-16 border border-slate-700/60">
+            <!-- Tabs -->
+            <div class="flex border-b border-slate-800 mb-6 text-sm font-semibold">
+                <button onclick="switchTab('passenger-tab', this)" class="tab-btn active-tab flex-1 py-3 text-center border-b-2 border-blue-500 text-blue-400 flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-users text-blue-400"></i> Book Passenger Seat
+                </button>
+                <button onclick="switchTab('cargo-tab', this)" class="tab-btn flex-1 py-3 text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-boxes-packing text-emerald-400"></i> Ship Express Cargo
+                </button>
+                <button onclick="switchTab('track-tab', this)" class="tab-btn flex-1 py-3 text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-location-crosshairs text-amber-400"></i> Track PNR / AWB
+                </button>
+            </div>
+
+            <!-- Tab 1: Passenger Booking Quick Search -->
+            <div id="passenger-tab" class="tab-content">
+                <form action="{{ url_for('passenger_portal') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">From Terminal</label>
+                        <select name="origin" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value="">Select Origin Hub</option>
+                            {% for hub in all_hubs %}
+                            <option value="{{ hub.id }}">{{ hub.city }} ({{ hub.code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">To Destination</label>
+                        <select name="dest" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value="">Select Destination Hub</option>
+                            {% for hub in all_hubs %}
+                            <option value="{{ hub.id }}">{{ hub.city }} ({{ hub.code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-magnifying-glass"></i> Search Buses
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tab 2: Cargo Dispatch Quick Form -->
+            <div id="cargo-tab" class="tab-content hidden">
+                <form action="{{ url_for('book_cargo') }}" method="POST" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Origin Depot</label>
+                        <select name="origin_hub_id" required class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="">Origin Depot</option>
+                            {% for hub in all_hubs %}
+                            <option value="{{ hub.id }}">{{ hub.city }} ({{ hub.code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Destination Depot</label>
+                        <select name="dest_hub_id" required class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <option value="">Destination Depot</option>
+                            {% for hub in all_hubs %}
+                            <option value="{{ hub.id }}">{{ hub.city }} ({{ hub.code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Weight & Category</label>
+                        <div class="flex gap-2">
+                            <input type="number" name="weight_kg" step="0.5" min="0.5" placeholder="Kg" required class="w-24 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl px-3 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                            <select name="cargo_type" class="flex-1 bg-slate-900 border border-slate-700 text-slate-100 rounded-xl px-3 py-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                <option value="E-Commerce Parcel">Parcel</option>
+                                <option value="Electronics & Hardware">Electronics</option>
+                                <option value="Perishable / Fresh">Perishables</option>
+                                <option value="Heavy Commercial">Heavy Cargo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Hidden sender defaults for quick book or redirect -->
+                    <input type="hidden" name="sender_name" value="Direct Shipper">
+                    <input type="hidden" name="receiver_name" value="Consignee Partner">
+                    <div class="sm:col-span-3 flex justify-end mt-2">
+                        <button type="submit" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 px-8 rounded-xl transition-all shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-paper-plane"></i> Calculate Fare & Dispatch Cargo
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tab 3: Tracking Search -->
+            <div id="track-tab" class="tab-content hidden">
+                <form action="{{ url_for('tracking_search') }}" method="GET" class="flex flex-col sm:flex-row gap-3">
+                    <div class="flex-1 relative">
+                        <input type="text" name="ref" placeholder="Enter PNR (e.g. PNR-DT-882101) or AWB Tracking # (e.g. AWB-DT-10081)..." required class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-xl pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <i class="fa-solid fa-barcode absolute left-4 top-4 text-slate-500 text-base"></i>
+                    </div>
+                    <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 px-8 rounded-xl transition-all shadow-lg shadow-amber-600/30 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-location-crosshairs"></i> Locate Consignment / Passenger
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Key Metrics Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
+            <div class="glass-card p-5 rounded-2xl border-l-4 border-l-blue-500">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Passengers Carried</span>
+                    <i class="fa-solid fa-user-check text-blue-400 text-lg"></i>
+                </div>
+                <div class="text-2xl sm:text-3xl font-extrabold text-white">{{ stats.total_passengers }}</div>
+                <div class="text-xs text-blue-400/80 mt-1 flex items-center gap-1">
+                    <i class="fa-solid fa-circle-check"></i> Safe scheduled journeys
+                </div>
+            </div>
+
+            <div class="glass-card p-5 rounded-2xl border-l-4 border-l-emerald-500">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cargo Shipped</span>
+                    <i class="fa-solid fa-weight-hanging text-emerald-400 text-lg"></i>
+                </div>
+                <div class="text-2xl sm:text-3xl font-extrabold text-white">{{ "%.1f"|format(stats.total_cargo_kg) }} <span class="text-base font-normal text-slate-400">kg</span></div>
+                <div class="text-xs text-emerald-400/80 mt-1 flex items-center gap-1">
+                    <i class="fa-solid fa-bolt"></i> Same-day hitching active
+                </div>
+            </div>
+
+            <div class="glass-card p-5 rounded-2xl border-l-4 border-l-purple-500">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Fleet Size</span>
+                    <i class="fa-solid fa-truck-front text-purple-400 text-lg"></i>
+                </div>
+                <div class="text-2xl sm:text-3xl font-extrabold text-white">{{ stats.active_fleet }}</div>
+                <div class="text-xs text-purple-400/80 mt-1 flex items-center gap-1">
+                    <i class="fa-solid fa-shield-halved"></i> Hybrid buses & trucks
+                </div>
+            </div>
+
+            <div class="glass-card p-5 rounded-2xl border-l-4 border-l-amber-500">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Transit Lines</span>
+                    <i class="fa-solid fa-route text-amber-400 text-lg"></i>
+                </div>
+                <div class="text-2xl sm:text-3xl font-extrabold text-white">{{ stats.active_trips }}</div>
+                <div class="text-xs text-amber-400/80 mt-1 flex items-center gap-1">
+                    <i class="fa-solid fa-satellite-dish"></i> Real-time GPS tracked
+                </div>
+            </div>
+        </div>
+
+        <!-- How Dual-Transit & Cargo Hitching Works (Educational Architecture Section) -->
+        <div class="mb-16">
+            <div class="text-center max-w-2xl mx-auto mb-10">
+                <h2 class="text-2xl sm:text-3xl font-bold text-white">How Dhanush Dual-Transit Works</h2>
+                <p class="text-sm text-slate-400 mt-2">
+                    Solving empty mileage and accelerating transit speeds by unifying passenger mobility and freight logistics into a cohesive ecosystem.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Step 1 -->
+                <div class="glass-card glass-card-hover p-6 rounded-2xl border border-slate-800 relative">
+                    <div class="w-12 h-12 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center text-xl font-bold mb-4">
+                        1
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Dual Capacity Reservation</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Passengers book comfortable seats online, while businesses and senders register parcels. Our engine calculates passenger seat allocation alongside unused lower luggage bay capacity.
+                    </p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="glass-card glass-card-hover p-6 rounded-2xl border border-slate-800 relative">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-xl font-bold mb-4">
+                        2
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Smart Cargo-Hitching</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Express parcels (< 150 kg) are loaded into the climate-controlled cargo decks of passenger coaches. They move at passenger bus speeds, achieving same-day delivery without waiting for slow freight consolidation.
+                    </p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="glass-card glass-card-hover p-6 rounded-2xl border border-slate-800 relative">
+                    <div class="w-12 h-12 rounded-xl bg-amber-600/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-xl font-bold mb-4">
+                        3
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Unified Telematics & Hub Delivery</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Both travelers and freight receivers track the exact same vehicle using PNR or AWB tracking codes. Upon arrival at the terminal, passengers disembark while parcels are instantly sorted for last-mile delivery.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Running Trips Preview (Showing Dual Utilization!) -->
+        <div class="mb-16">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+                        <span class="inline-block w-3 h-3 rounded-full bg-emerald-500 transit-live-dot"></span>
+                        Active Dual-Transit Trips
+                    </h2>
+                    <p class="text-xs text-slate-400">Live operational trips carrying both travelers and cargo right now</p>
+                </div>
+                <a href="{{ url_for('fleet_control') }}" class="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1">
+                    View Fleet Dispatch Room <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% for trip in active_trips %}
+                <div class="glass-card glass-card-hover rounded-2xl p-6 border border-slate-800">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                {{ trip.trip_code }}
+                            </span>
+                            <h3 class="text-lg font-bold text-white mt-2">{{ trip.origin_city }} &rarr; {{ trip.dest_city }}</h3>
+                            <p class="text-xs text-slate-400">{{ trip.vehicle_name }} ({{ trip.reg_number }})</p>
+                        </div>
+                        <span class="text-xs px-2.5 py-1 rounded-full font-semibold {{ 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' if trip.status == 'In Transit' else 'bg-slate-700 text-slate-300' }}">
+                            {{ trip.status }}
+                        </span>
+                    </div>
+
+                    <!-- Dual Capacity Utilization Gauges -->
+                    <div class="space-y-3 bg-slate-900/60 p-4 rounded-xl border border-slate-800/80 mb-4">
+                        <!-- Passenger Occupancy -->
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-blue-400 flex items-center gap-1.5"><i class="fa-solid fa-users"></i> Passenger Occupancy</span>
+                                <span class="text-white font-medium">{{ trip.booked_seats }} / {{ trip.total_seats }} Seats</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                                <div class="bg-blue-500 h-2 rounded-full" style="width: {{ (trip.booked_seats / (trip.total_seats or 1) * 100)|round }}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Cargo Payload Capacity -->
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-emerald-400 flex items-center gap-1.5"><i class="fa-solid fa-boxes-packing"></i> Cargo Bay Payload</span>
+                                <span class="text-white font-medium">{{ "%.0f"|format(trip.booked_cargo_kg) }} / {{ "%.0f"|format(trip.total_cargo_kg) }} kg</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                                <div class="bg-emerald-500 h-2 rounded-full" style="width: {{ (trip.booked_cargo_kg / (trip.total_cargo_kg or 1) * 100)|round }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs">
+                        <span class="text-slate-400">
+                            <i class="fa-regular fa-clock mr-1"></i> Dep: {{ trip.departure_time }}
+                        </span>
+                        <a href="{{ url_for('tracking_details', tracking_ref='PNR-DT-882101' if loop.first else 'AWB-DT-10081') }}" class="text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1">
+                            Live GPS Map <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            b.classList.remove('active-tab', 'border-blue-500', 'text-blue-400');
+            b.classList.add('border-transparent', 'text-slate-400');
+        });
+
+        document.getElementById(tabId).classList.remove('hidden');
+        btn.classList.add('active-tab', 'border-blue-500', 'text-blue-400');
+        btn.classList.remove('border-transparent', 'text-slate-400');
+    }
+</script>
+{% endblock %}

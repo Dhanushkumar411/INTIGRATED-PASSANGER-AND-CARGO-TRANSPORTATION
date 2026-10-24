@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --accent: #f59e0b;
+    --cargo-accent: #059669;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #0f172a;
+    color: #f1f5f9;
+}
+
+.mono {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.glass-card {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card-hover {
+    transition: all 0.25s ease-in-out;
+}
+
+.glass-card-hover:hover {
+    transform: translateY(-3px);
+    border-color: rgba(96, 165, 250, 0.3);
+    box-shadow: 0 12px 30px -10px rgba(37, 99, 235, 0.25);
+}
+
+.glow-blue {
+    box-shadow: 0 0 35px -5px rgba(37, 99, 235, 0.35);
+}
+
+.glow-emerald {
+    box-shadow: 0 0 35px -5px rgba(16, 185, 129, 0.35);
+}
+
+.badge-hybrid {
+    background: linear-gradient(135deg, #1e40af 0%, #065f46 100%);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+/* Pulse animation for active transit */
+@keyframes transitPulse {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    50% { transform: scale(1.08); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.transit-live-dot {
+    animation: transitPulse 2s infinite ease-in-out;
+}

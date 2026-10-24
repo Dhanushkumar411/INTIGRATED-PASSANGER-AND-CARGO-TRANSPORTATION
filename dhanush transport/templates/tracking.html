@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Universal Live Tracking - Dhanush OmniTransit{% endblock %}
+
+{% block head %}
+<style>
+    #liveMap {
+        height: 420px;
+        width: 100%;
+        border-radius: 1rem;
+        z-index: 10;
+    }
+    .leaflet-container {
+        background-color: #0b1120 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- Search Section -->
+    <div class="max-w-3xl mx-auto text-center mb-8">
+        <h1 class="text-3xl font-extrabold text-white">Universal Dual-Transit Tracking</h1>
+        <p class="text-sm text-slate-400 mt-2">
+            Track passenger journeys and logistics cargo consignments moving across India with real-time GPS telematics.
+        </p>
+
+        <form action="{{ url_for('tracking_search') }}" method="GET" class="mt-6 flex flex-col sm:flex-row gap-3">
+            <div class="flex-1 relative">
+                <input type="text" name="ref" value="{{ tracking_ref or '' }}" placeholder="Enter PNR (e.g. PNR-DT-882101) or AWB (e.g. AWB-DT-10081)..." required class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-xl pl-11 pr-4 py-3 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                <i class="fa-solid fa-satellite-dish absolute left-4 top-4 text-amber-400 text-sm"></i>
+            </div>
+            <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold py-3 px-8 rounded-xl transition-all shadow-lg shadow-amber-600/30 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-location-crosshairs"></i> Locate
+            </button>
+        </form>
+
+        <!-- Quick Demo Links -->
+        <div class="flex flex-wrap items-center justify-center gap-2 mt-3 text-xs text-slate-400">
+            <span>Demo Links:</span>
+            <a href="{{ url_for('tracking_details', tracking_ref='PNR-DT-882101') }}" class="text-blue-400 hover:underline">Aditya's Passenger Ride (PNR-DT-882101)</a>
+            <span class="text-slate-600">&bull;</span>
+            <a href="{{ url_for('tracking_details', tracking_ref='AWB-DT-10081') }}" class="text-emerald-400 hover:underline">Hitched Electronics (AWB-DT-10081)</a>
+            <span class="text-slate-600">&bull;</span>
+            <a href="{{ url_for('tracking_details', tracking_ref='AWB-DT-90050') }}" class="text-purple-400 hover:underline">10T Heavy Freight (AWB-DT-90050)</a>
+        </div>
+    </div>
+
+    {% if item %}
+    <!-- Active Tracking Result Display -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Side: Map & Route Progression (7 cols) -->
+        <div class="lg:col-span-7 space-y-6">
+            
+            <!-- Map Card -->
+            <div class="glass-card p-5 rounded-2xl border border-slate-800">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 transit-live-dot"></span>
+                        <h3 class="text-sm font-bold text-white">Live Vehicle GPS Location</h3>
+                    </div>
+                    <span class="text-xs text-slate-400 font-mono">
+                        {{ item.origin_city }} &rarr; {{ item.dest_city }}
+                    </span>
+                </div>
+
+                <!-- Leaflet Map Container -->
+                <div id="liveMap" class="shadow-inner border border-slate-800"></div>
+
+                <!-- Progress Bar -->
+                <div class="mt-4">
+                    <div class="flex justify-between text-xs text-slate-400 mb-1">
+                        <span>Route Completion</span>
+                        <span class="font-bold text-white">{{ item.progress_pct or 0 }}% Finished</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+                        <div class="bg-gradient-to-r from-blue-500 to-emerald-400 h-2.5 rounded-full" style="width: {{ item.progress_pct or 0 }}%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dual-Transit Co-Manifest Box -->
+            {% if dual_manifest and item.vehicle_type and 'Passenger' in item.vehicle_type %}
+            <div class="p-5 rounded-2xl bg-gradient-to-r from-blue-950/60 via-slate-900 to-emerald-950/60 border border-slate-700">
+                <div class="flex items-center gap-2 mb-2 text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                    <i class="fa-solid fa-shuffle"></i> Dual-Transit Synchronized Manifest
+                </div>
+                <h4 class="text-base font-bold text-white mb-2">
+                    Passenger & Cargo Shared Coach
+                </h4>
+                <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                    This coach (<span class="font-semibold text-white">{{ item.vehicle_name }}</span>) operates on Dhanush's dual-transit protocol. 
+                    Passengers ride in the upper climate-controlled cabin while express parcel shipments travel securely in the dedicated undercarriage cargo vault.
+                </p>
+                <div class="grid grid-cols-2 gap-4 text-xs">
+                    <div class="p-3 bg-slate-950/70 rounded-xl border border-slate-800">
+                        <span class="text-slate-400 block mb-1"><i class="fa-solid fa-users text-blue-400 mr-1"></i> Cabin Occupancy:</span>
+                        <strong class="text-white text-sm">{{ dual_manifest.passenger_count }} Travelers Boarded</strong>
+                    </div>
+                    <div class="p-3 bg-slate-950/70 rounded-xl border border-slate-800">
+                        <span class="text-slate-400 block mb-1"><i class="fa-solid fa-boxes-packing text-emerald-400 mr-1"></i> Hitched Cargo Payload:</span>
+                        <strong class="text-white text-sm">{{ dual_manifest.cargo_consignments_count }} Consignments ({{ "%.1f"|format(dual_manifest.cargo_weight_kg) }} kg)</strong>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- Right Side: Checkpoint Timeline & Info (5 cols) -->
+        <div class="lg:col-span-5 space-y-6">
+            
+            <!-- Summary Card -->
+            <div class="glass-card p-6 rounded-2xl border border-slate-800">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full {{ 'bg-blue-500/20 text-blue-400 border border-blue-500/30' if item_type == 'PASSENGER' else 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' }}">
+                            {{ item_type }} RECORD
+                        </span>
+                        <h2 class="text-xl font-black text-white mt-1">{{ item.code }}</h2>
+                    </div>
+                    <span class="text-xs font-bold px-3 py-1 rounded-full {{ 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' if item.status in ['In Transit', 'Boarded', 'Confirmed'] else 'bg-slate-800 text-slate-300' }}">
+                        {{ item.status }}
+                    </span>
+                </div>
+
+                <!-- Info Grid -->
+                <div class="grid grid-cols-2 gap-3 text-xs bg-slate-950/70 p-4 rounded-xl border border-slate-800 mb-4">
+                    <div>
+                        <span class="text-slate-500 block">Name / Item:</span>
+                        <span class="font-bold text-white">{{ item.title_name }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block">Assigned Trip:</span>
+                        <span class="font-bold text-slate-200 mono">{{ item.trip_code or 'Direct Transit' }}</span>
+                    </div>
+                    {% if item_type == 'CARGO' and item.sender_name %}
+                    <div>
+                        <span class="text-slate-500 block">Sender:</span>
+                        <span class="font-bold text-slate-200">{{ item.sender_name }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block">Receiver:</span>
+                        <span class="font-bold text-slate-200">{{ item.receiver_name }}</span>
+                    </div>
+                    {% else %}
+                    <div>
+                        <span class="text-slate-500 block">Seat / Booking:</span>
+                        <span class="font-bold text-blue-400 mono">{{ item.seat_number or 'Reserved' }}</span>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <span class="text-slate-500 block">Vehicle Reg:</span>
+                        <span class="font-bold text-slate-200">{{ item.reg_number or 'Depot Transit' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block">Captain / Driver:</span>
+                        <span class="font-bold text-slate-200">{{ item.driver_name or 'Transit Staff' }}</span>
+                    </div>
+                </div>
+
+                <!-- Milestone Timeline -->
+                <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-amber-400"></i> Chronological Tracking Milestones
+                </h4>
+
+                <div class="space-y-4 border-l-2 border-slate-800 ml-3 pl-5 relative">
+                    {% for cp in checkpoints %}
+                    <div class="relative">
+                        <!-- Bullet -->
+                        <div class="absolute -left-[27px] top-1 w-4 h-4 rounded-full border-2 {{ 'bg-emerald-500 border-emerald-300 shadow-md shadow-emerald-500/30' if cp.is_completed else 'bg-slate-800 border-slate-600' }} flex items-center justify-center">
+                            {% if cp.is_completed %}
+                            <i class="fa-solid fa-check text-[8px] text-black font-black"></i>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-bold text-white">{{ cp.stage_name }}</span>
+                                <span class="text-[10px] text-slate-500 font-mono">{{ cp.status_timestamp }}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-0.5">{{ cp.location }}</p>
+                            {% if cp.notes %}
+                            <p class="text-[11px] text-slate-300 bg-slate-950/50 p-2 rounded-lg mt-1 border border-slate-800/80">
+                                {{ cp.notes }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if item %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const originLat = {{ item.origin_lat or 12.9716 }};
+        const originLng = {{ item.origin_lng or 77.5946 }};
+        const destLat = {{ item.dest_lat or 13.0694 }};
+        const destLng = {{ item.dest_lng or 80.1948 }};
+        const currentLat = {{ item.current_lat or item.origin_lat or 12.9716 }};
+        const currentLng = {{ item.current_lng or item.origin_lng or 77.5946 }};
+
+        // Initialize Map
+        const map = L.map('liveMap').setView([currentLat, currentLng], 7);
+
+        // OpenStreetMap Dark/Standard tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: 18,
+        }).addTo(map);
+
+        // Origin Marker (Blue)
+        const originMarker = L.circleMarker([originLat, originLng], {
+            radius: 8,
+            fillColor: "#3b82f6",
+            color: "#ffffff",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.9
+        }).addTo(map).bindPopup("<b>Origin:</b> {{ item.origin_city }} Terminal");
+
+        // Destination Marker (Emerald)
+        const destMarker = L.circleMarker([destLat, destLng], {
+            radius: 8,
+            fillColor: "#10b981",
+            color: "#ffffff",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.9
+        }).addTo(map).bindPopup("<b>Destination:</b> {{ item.dest_city }} Terminal");
+
+        // Route Polyline
+        const routeLine = L.polyline([
+            [originLat, originLng],
+            [currentLat, currentLng],
+            [destLat, destLng]
+        ], {
+            color: '#60a5fa',
+            weight: 4,
+            dashArray: '8, 8',
+            opacity: 0.8
+        }).addTo(map);
+
+        // Vehicle Live Marker (Pulsing Amber)
+        const vehicleMarker = L.marker([currentLat, currentLng]).addTo(map)
+            .bindPopup(`
+                <div style="font-size:12px; line-height:1.4;">
+                    <b style="color:#2563eb;">{{ item.vehicle_name or 'Dhanush Transit Vehicle' }}</b><br>
+                    <span>Reg: {{ item.reg_number or 'N/A' }}</span><br>
+                    <span>Status: <b>{{ item.status }}</b></span><br>
+                    <span>Speed: 72 km/h</span>
+                </div>
+            `).openPopup();
+
+        // Fit bounds nicely
+        const group = new L.featureGroup([originMarker, destMarker, vehicleMarker]);
+        map.fitBounds(group.getBounds().pad(0.2));
+    });
+</script>
+{% endif %}
+{% endblock %}
